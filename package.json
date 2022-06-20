@@ -1,0 +1,29 @@
+{
+  "name": "@elmeet/electron-ipc-browser",
+  "version": "1.0.0",
+  "description": "运行在浏览器下, 模拟 electron 主进程通信",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elmeet/electron-ipc-browser.git"
+  },
+  "keywords": [
+    "electron",
+    "promise",
+    "browser",
+    "channel"
+  ],
+  "author": "elmeet <elmeet@qq.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/elmeet/electron-ipc-browser/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/elmeet/electron-ipc-browser#readme"
+}
