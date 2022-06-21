@@ -155,7 +155,7 @@ export function useRendererHub<
       const handlers = _all.get(name as string);
       if (handlers) {
         handlers.forEach((fn) => {
-          fn(name, data);
+          fn(data);
         });
       }
     },

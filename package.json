@@ -1,6 +1,6 @@
 {
   "name": "@elmeet/electron-ipc-browser",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "运行在浏览器下, 模拟 electron 进程通信",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
