@@ -33,17 +33,10 @@ type ReturnResolveType<T extends (...args: any) => any> = T extends (
   ? PromiseResolveType<R>
   : any;
 
-// export interface MainHubOptions {
-//   onReceiveBeforeEach?: (arg: RendererToMainData) => void;
-//   onReplyBeforeEach?: (arg: RendererToMainData) => void;
-//   onSendBeforeEach?: (arg: MainToRendererData) => void;
-// }
-
 let singleMainHub: unknown | null = null;
 
 export function useMainHub<
-  RendererToMain extends Record<string, (args: any) => any>,
-  MainToRenderer extends Record<string, unknown>
+  RendererToMain extends Record<string, (args: any) => any>
 >() {
   if (singleMainHub) {
     return singleMainHub as typeof hub;
@@ -60,11 +53,11 @@ export function useMainHub<
   const hub = {
     on<P extends MainKey>(name: P, handler: MainHandler<P>) {
       if (!isString(name)) {
-        throw new TypeError("[electron-ipc-hub main] param name is not string");
+        throw new TypeError("[electron-ipc-browser main] param name is not string");
       }
       if (!isFunction(handler)) {
         throw new TypeError(
-          "[electron-ipc-hub main] param handler is not function"
+          "[electron-ipc-browser main] param handler is not function"
         );
       }
       _all.set(name, handler);
@@ -86,12 +79,87 @@ export function useMainHub<
         return Promise.resolve(handler(data));
       } else {
         return Promise.reject(
-          new Error(`[electron-ipc-hub main] main process not listen ${name as string}`)
+          new Error(
+            `[electron-ipc-browser main] main process not listen ${name as string}`
+          )
         );
       }
     },
   };
 
   singleMainHub = hub;
+  return hub;
+}
+
+let singleRendererHub: unknown | null = null;
+
+export function useRendererHub<
+  MainToRenderer extends Record<string, unknown>
+>() {
+  if (singleRendererHub) {
+    return singleRendererHub as typeof hub;
+  }
+  const _all: Map<string, Function[]> = new Map();
+  const replys: Map<string, Function> = new Map();
+
+
+  type RendererKey = keyof MainToRenderer;
+  type FunctionByParam<K extends RendererKey> = (arg: MainToRenderer[K]) => any;
+  type RendererHandler<K extends RendererKey> = MainToRenderer[K];
+
+  const hub = {
+    on<P extends RendererKey>(name: P, handler: FunctionByParam<P>) {
+      if (!isString(name)) {
+        throw new TypeError(
+          "[electron-ipc-browser renderer] param name is not string"
+        );
+      }
+      if (!isFunction(handler)) {
+        throw new TypeError(
+          "[electron-ipc-browser renderer] param handler is not function"
+        );
+      }
+      const handlers = _all.get(name);
+      const added = handlers && handlers.push(handler);
+      if (!added) {
+        _all.set(name, [handler]);
+      }
+    },
+    off<P extends RendererKey>(name: P, handler: FunctionByParam<P>) {
+      if (!isString(name)) {
+        throw new TypeError(
+          "[electron-ipc-browser renderer] param name is not string"
+        );
+      }
+      if (handler && !isFunction(handler)) {
+        throw new TypeError(
+          "[electron-ipc-browser renderer] param handler is not function"
+        );
+      }
+      if (!handler) {
+        _all.delete(name);
+        return;
+      }
+      const handlers = _all.get(name);
+      if (handlers) {
+        handlers.splice(
+          handlers.indexOf(handler as unknown as Function) >>> 0,
+          1
+        );
+      }
+    },
+    emit<P extends RendererKey>(name: P, data: RendererHandler<P>) {
+      if (!isString(name)) {
+        throw new TypeError("[electron-ipc-browser renderer] param name is not string");
+      }
+      const handlers = _all.get(name as string);
+      if (handlers) {
+        handlers.forEach((fn) => {
+          fn(name, data);
+        });
+      }
+    },
+  };
+  singleRendererHub = hub;
   return hub;
 }
